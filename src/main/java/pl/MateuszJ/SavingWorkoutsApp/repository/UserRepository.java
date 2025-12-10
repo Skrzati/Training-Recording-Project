@@ -1,5 +1,6 @@
 package pl.MateuszJ.SavingWorkoutsApp.repository;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import pl.MateuszJ.SavingWorkoutsApp.model.User;
 
@@ -9,4 +10,5 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByUsername(String username);
     Boolean existsByUsername(String username);
 
+    Pageable getByPassword(String password);
 }

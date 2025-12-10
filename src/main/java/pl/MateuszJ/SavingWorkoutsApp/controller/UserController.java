@@ -20,9 +20,9 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/login")
+    @PostMapping("/login")
     public Optional<User> getUsers(@RequestBody User user) {
-        return userService.findByUsername(user.getUsername());
+        return userService.login(user.getUsername(), user.getPassword());
     }
 
     @PostMapping("/register")

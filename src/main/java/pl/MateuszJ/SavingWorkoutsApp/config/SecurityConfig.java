@@ -54,7 +54,8 @@ public class SecurityConfig {
                 // 3. Reguły autoryzacji dla żądań
                 .authorizeHttpRequests(authorize -> authorize
                         // Rejestracja (POST /users) i przyszłe logowanie (/auth/**) są publiczne
-                        .requestMatchers(HttpMethod.POST, "/users").permitAll() // Tylko POST na /users jest dozwolony
+                        .requestMatchers(HttpMethod.POST, "/register").permitAll() // Tylko POST na /users jest dozwolony
+                        .requestMatchers(HttpMethod.POST, "/login").permitAll()
                         .requestMatchers("/auth/**").permitAll()
 
                         // Użytkownicy mogą pobierać lub zapisywać treningi

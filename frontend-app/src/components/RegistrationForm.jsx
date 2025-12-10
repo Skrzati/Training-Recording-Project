@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
+import './AuthForms.css'; // Upewnij się, że to jest!
 
-
-// Adres Twojego backendu Spring Boot
 const API_URL = 'http://localhost:8080/register';
 
 const RegistrationForm = () => {
-    // Stan do przechowywania danych formularza
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -14,7 +12,6 @@ const RegistrationForm = () => {
     const [message, setMessage] = useState('');
     const [isError, setIsError] = useState(false);
 
-    // Funkcja do aktualizacji stanu przy zmianie inputów
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -22,28 +19,24 @@ const RegistrationForm = () => {
         });
     };
 
-    // Funkcja do obsługi wysłania formularza
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage('Rejestracja w toku...');
         setIsError(false);
-
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                // Wysyłamy dane jako JSON, który pasuje do modelu User.java
                 body: JSON.stringify(formData), 
             });
 
             if (response.ok) {
                 setMessage('Rejestracja pomyślna! Witamy na pokładzie.');
                 setIsError(false);
-                setFormData({ username: '', email: '', password: '' }); // Reset
+                setFormData({ username: '', email: '', password: '' }); 
             } else {
-                // Obsługa błędów, np. walidacji (np. login już zajęty)
                 const errorText = await response.text();
                 setMessage(`Błąd rejestracji: ${errorText.substring(0, 100)}...`); 
                 setIsError(true);
@@ -56,52 +49,48 @@ const RegistrationForm = () => {
     };
 
     return (
-        <div style={{ padding: '20px', maxWidth: '400px', margin: '50px auto', fontFamily: 'Arial' }}>
+        <div className="auth-container">
             <h2>Rejestracja nowego użytkownika</h2>
             <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: '15px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px' }}>Nazwa użytkownika:</label>
+                <div className="form-group">
+                    <label>Nazwa użytkownika:</label>
                     <input
                         type="text"
                         name="username"
                         value={formData.username}
                         onChange={handleChange}
                         required
-                        style={{ width: '100%', padding: '8px' }}
                     />
                 </div>
-                <div style={{ marginBottom: '15px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px' }}>Email:</label>
+                <div className="form-group">
+                    <label>Email:</label>
                     <input
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
                         required
-                        style={{ width: '100%', padding: '8px' }}
                     />
                 </div>
-                <div style={{ marginBottom: '15px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px' }}>Hasło:</label>
+                <div className="form-group">
+                    <label>Hasło:</label>
                     <input
                         type="password"
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
                         required
-                        style={{ width: '100%', padding: '8px' }}
                     />
                 </div>
                 <button 
                     type="submit" 
-                    style={{ padding: '10px 15px', backgroundColor: '#007bff', color: 'white', border: 'none', cursor: 'pointer' }}
+                    className="submit-button"
                 >
                     Zarejestruj się
                 </button>
-                
             </form>
             {message && (
-                <p style={{ color: isError ? 'red' : 'green', marginTop: '15px', fontWeight: 'bold' }}>
+                <p className={`status-message ${isError ? 'error' : 'success'}`}>
                     {message}
                 </p>
             )}

@@ -1,25 +1,24 @@
 import React, { useState } from 'react';
+import './AuthForms.css'; // Upewnij się, że to jest!
 
-// Adres Twojego backendu Spring Boot
 const API_URL = 'http://localhost:8080/login';
 
 const LoginForm = () => {
-    // Stan do przechowywania danych formularza
     const [formData, setFormData] = useState({
         username: '',
-        email: '',
         password: '',
     });
     const [message, setMessage] = useState('');
     const [isError, setIsError] = useState(false);
 
-    // Funkcja do aktualizacji stanu przy zmianie inputów
     const handleChange = (e) => {
         setFormData({
             ...formData,
             [e.target.name]: e.target.value,
         });
     };
+
+    // ... (początek komponentu jest taki sam) ...
 
     // Funkcja do obsługi wysłania formularza
     const handleSubmit = async (e) => {
@@ -29,66 +28,88 @@ const LoginForm = () => {
 
         try {
             const response = await fetch(API_URL, {
-                method: 'GET',
+                method: 'POST', 
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                // Wysyłamy dane jako JSON, który pasuje do modelu User.java
                 body: JSON.stringify(formData), 
             });
 
+            // 1. Sprawdzamy, czy status HTTP to 2xx (np. 200 OK)
             if (response.ok) {
-                setMessage('Logowanie pomyślne! Witamy na pokładzie.');
+                // JEŚLI response.ok JEST TRUE, LOGOWANIE ZOSTAŁO UZNANE PRZEZ SERWER ZA UDANE
+                
+                setMessage('Logowanie Pomyślne! Jesteś zalogowany.');
                 setIsError(false);
-                setFormData({ username: '', password: '' }); // Reset
+                setFormData({ username: '', password: '' }); 
+                
+                // TUTAJ W PRZYSZŁOŚCI DODAĆ LOGIKĘ PRZEKIEROWANIA LUB POBRANIA DANYCH
+                
             } else {
-                // Obsługa błędów, np. walidacji (np. login już zajęty)
+                // 2. Obsługa BŁĘDÓW HTTP (np. 401 Unauthorized, 403 Forbidden)
+                
+                let errorMsg = 'Wystąpił nieznany błąd logowania.';
+                
+                // Specyficzna obsługa dla statusu 401 (Brak Autoryzacji)
+                if (response.status === 401 || response.status === 403) {
+                    errorMsg = 'Nieprawidłowa nazwa użytkownika lub hasło.';
+                } else if (response.status) {
+                    // W przypadku innych błędów (np. 500 Internal Server Error)
+                    errorMsg = `Błąd Serwera (Status: ${response.status}).`;
+                }
+                
+                // Próbujemy pobrać szczegółową wiadomość tekstową (jeśli serwer ją wysłał)
                 const errorText = await response.text();
-                setMessage(`Zły Login Lub Hasło: ${errorText.substring(0, 100)}...`); 
+                if (errorText && errorText.length < 200) {
+                     errorMsg = `${errorMsg} Szczegóły: ${errorText}`;
+                }
+
+
+                setMessage(`Błąd logowania: ${errorMsg.substring(0, 100)}...`); 
                 setIsError(true);
             }
         } catch (error) {
             console.error('Błąd połączenia z API:', error);
-            setMessage('Błąd sieci: Nie udało się połączyć z serwerem. Upewnij się, że Spring Boot działa.');
+            setMessage('Błąd sieci: Nie udało się połączyć z serwerem. Upewnij się, że Spring Boot działa i CORS jest poprawnie skonfigurowany.');
             setIsError(true);
         }
     };
 
+// ... (reszta komponentu jest taka sama) ...
+
     return (
-        <div style={{ padding: '20px', maxWidth: '400px', margin: '50px auto', fontFamily: 'Arial' }}>
+        <div className="auth-container">
             <h2>Logowanie użytkownika</h2>
             <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: '15px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px' }}>Nazwa użytkownika:</label>
+                <div className="form-group">
+                    <label>Nazwa użytkownika:</label>
                     <input
                         type="text"
                         name="username"
                         value={formData.username}
                         onChange={handleChange}
                         required
-                        style={{ width: '100%', padding: '8px' }}
                     />
                 </div>
-                <div style={{ marginBottom: '15px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px' }}>Hasło:</label>
+                <div className="form-group">
+                    <label>Hasło:</label>
                     <input
                         type="password"
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
                         required
-                        style={{ width: '100%', padding: '8px' }}
                     />
                 </div>
                 <button 
                     type="submit" 
-                    style={{ padding: '10px 15px', backgroundColor: '#007bff', color: 'white', border: 'none', cursor: 'pointer' }}
+                    className="submit-button"
                 >
                     Zaloguj się
                 </button>
             </form>
             {message && (
-                <p style={{ color: isError ? 'red' : 'green', marginTop: '15px', fontWeight: 'bold' }}>
+                <p className={`status-message ${isError ? 'error' : 'success'}`}>
                     {message}
                 </p>
             )}
