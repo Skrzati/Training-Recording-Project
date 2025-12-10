@@ -11,26 +11,33 @@ import java.util.List;
 @Entity
 @Table(name = "Users")
 public class User implements UserDetails {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     @Column(unique = true)
     private String username;
     private String password;
     private String email;
 
+    public enum Role {
+        USER,
+        ADMIN
+    }
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private Role role = Role.USER;
 
     public User() {
     }
 
-    public User(int id, String username, String password, String email) {
+    public User(Integer id, String username, String password, String email, Role role) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.email = email;
+        this.role = role;
     }
+
 
 
     public int getId() {
@@ -49,6 +56,9 @@ public class User implements UserDetails {
         this.username = username;
     }
 
+    public void setRole(Role role) {
+        this.role = role;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -72,8 +82,4 @@ public class User implements UserDetails {
         this.email = email;
     }
 
-    enum Role {
-        USER,
-        ADMIN
-    }
 }

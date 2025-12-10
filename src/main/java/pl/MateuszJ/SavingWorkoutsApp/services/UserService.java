@@ -25,12 +25,13 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public List<User> getUsers() {
-        return userRepository.findAll();
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username);
     }
 
     public User setUsers(@RequestBody User users) {
         users.setPassword(passwordEncoder.encode(users.getPassword()));
+        users.setRole(User.Role.USER);
         return userRepository.save(users);
     }
 

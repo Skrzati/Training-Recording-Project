@@ -8,9 +8,10 @@ import pl.MateuszJ.SavingWorkoutsApp.model.User;
 import pl.MateuszJ.SavingWorkoutsApp.services.UserService;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping
 public class UserController {
 
     private final UserService userService;
@@ -19,12 +20,12 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping
-    public List<User> getUsers() {
-        return userService.getUsers();
+    @GetMapping("/login")
+    public Optional<User> getUsers(@RequestBody User user) {
+        return userService.findByUsername(user.getUsername());
     }
 
-    @PostMapping
+    @PostMapping("/register")
     public User addUser(@RequestBody User user) {
         return userService.setUsers(user);
     }

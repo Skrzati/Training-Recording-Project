@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 
-
 // Adres Twojego backendu Spring Boot
-const API_URL = 'http://localhost:8080/register';
+const API_URL = 'http://localhost:8080/login';
 
-const RegistrationForm = () => {
+const LoginForm = () => {
     // Stan do przechowywania danych formularza
     const [formData, setFormData] = useState({
         username: '',
@@ -25,12 +24,12 @@ const RegistrationForm = () => {
     // Funkcja do obsługi wysłania formularza
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setMessage('Rejestracja w toku...');
+        setMessage('Logowanie w toku...');
         setIsError(false);
 
         try {
             const response = await fetch(API_URL, {
-                method: 'POST',
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -39,13 +38,13 @@ const RegistrationForm = () => {
             });
 
             if (response.ok) {
-                setMessage('Rejestracja pomyślna! Witamy na pokładzie.');
+                setMessage('Logowanie pomyślne! Witamy na pokładzie.');
                 setIsError(false);
-                setFormData({ username: '', email: '', password: '' }); // Reset
+                setFormData({ username: '', password: '' }); // Reset
             } else {
                 // Obsługa błędów, np. walidacji (np. login już zajęty)
                 const errorText = await response.text();
-                setMessage(`Błąd rejestracji: ${errorText.substring(0, 100)}...`); 
+                setMessage(`Zły Login Lub Hasło: ${errorText.substring(0, 100)}...`); 
                 setIsError(true);
             }
         } catch (error) {
@@ -57,7 +56,7 @@ const RegistrationForm = () => {
 
     return (
         <div style={{ padding: '20px', maxWidth: '400px', margin: '50px auto', fontFamily: 'Arial' }}>
-            <h2>Rejestracja nowego użytkownika</h2>
+            <h2>Logowanie użytkownika</h2>
             <form onSubmit={handleSubmit}>
                 <div style={{ marginBottom: '15px' }}>
                     <label style={{ display: 'block', marginBottom: '5px' }}>Nazwa użytkownika:</label>
@@ -65,17 +64,6 @@ const RegistrationForm = () => {
                         type="text"
                         name="username"
                         value={formData.username}
-                        onChange={handleChange}
-                        required
-                        style={{ width: '100%', padding: '8px' }}
-                    />
-                </div>
-                <div style={{ marginBottom: '15px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px' }}>Email:</label>
-                    <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
                         onChange={handleChange}
                         required
                         style={{ width: '100%', padding: '8px' }}
@@ -96,9 +84,8 @@ const RegistrationForm = () => {
                     type="submit" 
                     style={{ padding: '10px 15px', backgroundColor: '#007bff', color: 'white', border: 'none', cursor: 'pointer' }}
                 >
-                    Zarejestruj się
+                    Zaloguj się
                 </button>
-                
             </form>
             {message && (
                 <p style={{ color: isError ? 'red' : 'green', marginTop: '15px', fontWeight: 'bold' }}>
@@ -109,4 +96,4 @@ const RegistrationForm = () => {
     );
 };
 
-export default RegistrationForm;
+export default LoginForm;
