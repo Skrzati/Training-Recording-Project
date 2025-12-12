@@ -1,42 +1,390 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* ==================================== */
+/* 0. ZMIENNE I RESET */
+/* ==================================== */
+
+:root {
+    --primary-color: #ff3c00;      /* Mocny pomarańcz/czerwień - energia i główny akcent */
+    --secondary-color: #00e676;    /* Zieleń - kontrast, sukces, linki */
+    --background-dark: #121212;    /* Tło aplikacji */
+    --surface-dark: #1e1e1e;      /* Powierzchnia główna/menu/modal */
+    --input-bg-color: #0a0a0a;     /* Bardzo ciemne tło inputów */
+    --text-light: #e0e0e0;         /* Jasny tekst */
+    --text-muted: #aaaaaa;         /* Przygaszony tekst */
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    
+    /* Nowa zmienna dla neonowego cienia */
+    --neon-shadow: 0 0 5px var(--primary-color), 0 0 10px rgba(255, 60, 0, 0.4);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body, html, #root {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--background-dark);
+    color: var(--text-light);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    
+    /* --- SMACZEK 1: STAŁE (PARALLAX) TŁO DLA GŁĘBI --- */
+    background-image: linear-gradient(rgba(18, 18, 18, 0.9), rgba(18, 18, 18, 0.9)), url('https://picsum.photos/1920/1080'); /* Przykładowy URL - zmień na własny! */
+    background-size: cover;
+    background-attachment: fixed; /* Klucz do efektu parallax */
+}
+
+/* ==================================== */
+/* 1. NAGŁÓWEK / NAV BAR */
+/* ==================================== */
+
+.navbar {
+    background-color: var(--surface-dark);
+    padding: 0.8rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7); /* Mocniejszy cień dla lepszej separacji */
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    letter-spacing: 1px;
+    flex-grow: 1; 
+    text-align: center;
+    
+    /* --- SMACZEK 2: NEONOWY CIEŃ NA LOGO --- */
+    text-shadow: 0 0 5px rgba(255, 60, 0, 0.6), 0 0 15px rgba(255, 60, 0, 0.3);
+    transition: text-shadow 0.3s ease-in-out;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Ikony w Navbar */
+.menu-toggle, .profile-btn {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 10px;
+    opacity: 0.8;
+    transition: color 0.2s, box-shadow 0.2s, transform 0.1s;
+    border-radius: 50%;
 }
 
-.card {
-  padding: 2em;
+/* --- SMACZEK 3: DYNAMICZNY GLOW DLA PRZYCISKÓW --- */
+.menu-toggle:hover, .profile-btn:hover {
+    color: var(--primary-color);
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(255, 60, 0, 0.5); /* Lekki glow na hover */
+    transform: scale(1.05);
 }
 
-.read-the-docs {
-  color: #888;
+.desktop-profile-only, .mobile-only-menu {
+    display: block; 
+}
+
+
+/* ==================================== */
+/* 2. SIDEBAR (Hamburger Menu) */
+/* ==================================== */
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -250px; 
+    width: 250px;
+    height: 100vh;
+    background-color: rgba(30, 30, 30, 0.95); /* Lekko przezroczyste, by widać blur w tle */
+    padding: 20px;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.9);
+    transition: left 0.3s ease-in-out;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    
+    /* --- SMACZEK 4: BLUR NA SIDEBAR (dla głębi) --- */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.sidebar.open {
+    left: 0;
+}
+
+.sidebar-header {
+    margin-bottom: 30px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--secondary-color);
+}
+
+.sidebar-header h2 {
+    color: var(--primary-color);
+    text-shadow: 0 0 5px rgba(255, 60, 0, 0.5);
+}
+
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    color: var(--text-light);
+    text-decoration: none;
+    padding: 12px 15px;
+    border-radius: 6px; /* Lekko zaokrąglone krawędzie */
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+/* --- SMACZEK 5: SUBTELNY GLOW DLA ELEMENTÓW MENU --- */
+.sidebar-nav a:hover {
+    background-color: rgba(255, 60, 0, 0.1); 
+    color: var(--primary-color);
+    box-shadow: 0 0 5px rgba(255, 60, 0, 0.3);
+}
+
+.sidebar-nav .icon {
+    margin-right: 15px;
+    font-size: 1.2rem;
+    color: var(--secondary-color); /* Zielony akcent na ikonach */
+    transition: color 0.2s;
+}
+
+.sidebar-nav a:hover .icon {
+    color: var(--primary-color);
+}
+
+.sidebar-footer {
+    display: none;
+}
+
+
+/* ==================================== */
+/* 3. GŁÓWNA TREŚĆ / CONTENT */
+/* ==================================== */
+
+.content {
+    padding: 1rem;
+    flex-grow: 1;
+    width: 100%; 
+}
+
+.page-content {
+    padding: 30px;
+    background-color: var(--surface-dark);
+    border-radius: 12px; 
+    margin-top: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7); /* Bardziej widoczny cień */
+    border-left: 5px solid var(--primary-color); 
+}
+
+.page-content h1 {
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+    padding-bottom: 10px;
+    font-size: 1.8rem;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+/* ==================================== */
+/* 4. MODALE AUTORYZACJI (NOWY STYL Z BLUR) */
+/* ==================================== */
+
+/* Nakładka z Blur (Rozmycie Tła) */
+.auth-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6); 
+    z-index: 150;
+    
+    /* KLUCZ DO BLUR TŁA */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Wrapper dla centrowania */
+.auth-modal-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 210; 
+}
+
+
+/* Kontener Formularza */
+.auth-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 40px; /* Większy padding dla lepszego wyglądu na desktopie */
+    
+    background-color: var(--surface-dark); 
+    border-radius: 12px;
+    
+    /* Dynamiczne obramowanie neonowe */
+    border: 1px solid var(--primary-color); 
+    box-shadow: 0 0 15px rgba(255, 60, 0, 0.6), 0 0 25px rgba(255, 60, 0, 0.2); /* Mocniejszy neon */
+    
+    box-sizing: border-box;
+    animation: fadeIn 0.8s ease-out;
+    position: relative; 
+}
+
+/* Animacja wejścia (zachowana) */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95); 
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.auth-container h2 {
+    text-align: center;
+    color: var(--secondary-color); /* Kontrastowy zielony */
+    margin-bottom: 30px;
+    font-weight: 800;
+    text-transform: uppercase; 
+    font-size: 1.8rem; /* Większy nagłówek */
+    letter-spacing: 2px;
+}
+
+/* 4.1 Stylizacja inputów i etykiet */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 1rem;
+    color: var(--text-light); 
+    font-weight: 600;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 14px 10px; /* Większy padding dla lepszej klikalności */
+    border: 1px solid #333; 
+    border-radius: 4px;
+    background-color: var(--input-bg-color);
+    color: var(--text-light);
+    font-size: 1.05rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    box-sizing: border-box;
+}
+
+/* --- SMACZEK 6: NEONOWY FOCUS NA INPUTACH --- */
+.form-group input:focus {
+    border-color: var(--secondary-color); 
+    box-shadow: 0 0 8px rgba(0, 230, 118, 0.5); /* Neonowy zielony cień na focusie */
+    outline: none;
+}
+
+/* 4.2 Stylizacja przycisku */
+.submit-button {
+    width: 100%;
+    padding: 16px; /* Duży, wyrazisty przycisk */
+    margin-top: 25px; 
+    background-color: var(--primary-color); 
+    color: var(--background-dark); 
+    border: none;
+    border-radius: 8px; /* Lekko zaokrąglone krawędzie */
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.3s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* --- SMACZEK 7: DYNAMICZNY GLOW DLA GŁÓWNEGO PRZYCISKU --- */
+.submit-button:hover {
+    background-color: #ff5e26; 
+    transform: translateY(-2px); 
+    box-shadow: 0 8px 15px rgba(255, 60, 0, 0.6); /* Mocniejszy cień na hover */
+}
+
+/* 4.3 Przełącznik Logowanie/Rejestracja */
+.switch-text {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 0.95rem; 
+    color: var(--text-muted);
+}
+
+.switch-text span {
+    color: var(--secondary-color); 
+    cursor: pointer;
+    margin-left: 5px;
+    font-weight: bold;
+    transition: color 0.2s, text-shadow 0.2s;
+}
+
+/* --- SMACZEK 8: ZIELONY GLOW DLA LINKU --- */
+.switch-text span:hover {
+    color: #00ff80;
+    text-decoration: underline;
+    text-shadow: 0 0 5px rgba(0, 230, 118, 0.4);
+}
+
+/* Przycisk zamknięcia modala */
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.8rem; /* Większy X */
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    line-height: 1; 
+    transition: color 0.2s, transform 0.1s;
+}
+
+.close-modal:hover {
+    color: var(--primary-color);
+    transform: rotate(90deg); /* Animacja obrotu na zamknięciu */
+}
+
+/* ... (Reszta stylów (DEBUG Button) bez zmian) ... */
+
+@media (min-width: 768px) {
+    /* Większe paddingi na desktopie */
+    .content {
+        padding: 30px 40px; 
+    }
+    
+    .page-content {
+        padding: 40px 30px;
+    }
+    
+    .auth-container {
+        max-width: 480px; /* Nieco szerszy modal na dużym ekranie */
+    }
 }
