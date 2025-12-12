@@ -1,17 +1,26 @@
 // frontend-app/src/components/HamburgerMenu.jsx
+
 import React from 'react';
 import { FaHome, FaRunning, FaDumbbell, FaUserCircle, FaSignOutAlt, FaBars, FaTimes } from 'react-icons/fa';
 
-// Komponent Menu Hamburger
 const HamburgerMenu = ({ isOpen, toggleMenu, isLoggedIn, navigateTo, openAuthModal }) => {
+    // Funkcja nawigacji, która zamyka menu
+    const handleNavigate = (view) => {
+        navigateTo(view);
+    };
+
+    // Funkcja otwierająca modal (i zamykająca menu, jeśli było otwarte)
+    const handleOpenAuthModal = (mode) => {
+        openAuthModal(mode);
+        if (isOpen) toggleMenu();
+    };
+
     return (
         <>
-            {/* Ikona hamburgera/zamknięcia - widoczna tylko na małych ekranach */}
             <button className="menu-toggle mobile-only-menu" onClick={toggleMenu}>
                 {isOpen ? <FaTimes /> : <FaBars />}
             </button>
 
-            {/* Boczne Menu (Sidebar) */}
             <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
                 <div className="sidebar-header">
                     <h2>FitLOG</h2>
@@ -20,25 +29,25 @@ const HamburgerMenu = ({ isOpen, toggleMenu, isLoggedIn, navigateTo, openAuthMod
                 <nav className="sidebar-nav">
                     <ul>
                         <li>
-                            <a onClick={() => { navigateTo('home'); toggleMenu(); }}>
+                            <a onClick={() => handleNavigate('home')}>
                                 <FaHome className="icon" />
                                 <span>Główna</span>
                             </a>
                         </li>
                         <li>
-                            <a onClick={() => { navigateTo('new-training'); toggleMenu(); }}>
+                            <a onClick={() => handleNavigate('new-training')}>
                                 <FaRunning className="icon" />
                                 <span>Zapisz Trening</span>
                             </a>
                         </li>
                         <li>
-                            <a onClick={() => { navigateTo('my-trainings'); toggleMenu(); }}>
+                            <a onClick={() => handleNavigate('my-trainings')}>
                                 <FaDumbbell className="icon" />
                                 <span>Moje Treningi</span>
                             </a>
                         </li>
                         <li>
-                            <a onClick={() => { navigateTo('stats'); toggleMenu(); }}>
+                            <a onClick={() => handleNavigate('stats')}>
                                 <FaUserCircle className="icon" />
                                 <span>Statystyki</span>
                             </a>
@@ -48,12 +57,13 @@ const HamburgerMenu = ({ isOpen, toggleMenu, isLoggedIn, navigateTo, openAuthMod
 
                 <div className="sidebar-footer">
                     {isLoggedIn ? (
-                        <a onClick={() => { navigateTo('logout'); toggleMenu(); }}>
+                        <a onClick={() => handleNavigate('logout')}>
                             <FaSignOutAlt className="icon" />
                             <span>Wyloguj</span>
                         </a>
                     ) : (
-                        <a onClick={() => { openAuthModal('login'); toggleMenu(); }}>
+                        // Na desktopie ten link jest ukryty, ale logika jest zachowana.
+                        <a onClick={() => handleOpenAuthModal('login')}>
                             <FaUserCircle className="icon" />
                             <span>Zaloguj / Rejestracja</span>
                         </a>
@@ -61,7 +71,7 @@ const HamburgerMenu = ({ isOpen, toggleMenu, isLoggedIn, navigateTo, openAuthMod
                 </div>
             </aside>
             
-            {/* Overlay zaciemniający tło - widoczny tylko gdy menu otwarte na małych ekranach */}
+            {/* Overlay zaciemniający tło */}
             {isOpen && <div className="overlay" onClick={toggleMenu}></div>}
         </>
     );

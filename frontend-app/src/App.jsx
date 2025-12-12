@@ -1,15 +1,18 @@
 // frontend-app/src/App.jsx
-import React, { useState } from 'react';
-import './App.css'; // GLÓWNE STYLE APLIKACJI I RESPONSIVE
-import { FaUserCircle } from 'react-icons/fa'; 
+
+import React, { useState, useEffect } from 'react';
+import './App.css'; // Używa ujednoliconych stylów z blur i smaczkami
+import { FaUserCircle } from 'react-icons/fa';
 import HamburgerMenu from './components/HamburgerMenu';
-// import './components/AuthForms.css'; // Dodaj import, jeśli tu definiujesz style formularzy
+import LoginForm from './components/LoginForm'; // Importujemy nowy komponent
+import RegistrationForm from './components/RegistrationForm'; // Importujemy nowy komponent
+
 
 // --- Symulowane Komponenty Stron (bez zmian) ---
 const HomePage = () => (
     <div className="page-content">
         <h1>Gotowy do treningu? 🔥</h1>
-        <p>Użyj menu (górny lewy róg), aby nawigować i zacząć zapisywać swoje postępy.</p>
+        <p>Użyj menu (górny lewy róg) lub kliknij ikonę profilu, aby się zalogować i zacząć zapisywać swoje postępy.</p>
         <p>Motywacja: **Sukces to suma małych wysiłków powtarzanych dzień po dniu.**</p>
     </div>
 );
@@ -17,100 +20,70 @@ const NewTrainingPage = () => <div className="page-content"><h1>Zapisz Nowy Tren
 const MyTrainingsPage = () => <div className="page-content"><h1>Moje Treningi 💪</h1><p>Wszystkie Twoje zarejestrowane sesje treningowe. Sprawdź swoje postępy!</p></div>;
 const StatsPage = () => <div className="page-content"><h1>Statystyki 📊</h1><p>Wizualizacja postępów: wykresy, rekordy życiowe i analiza objętości.</p></div>;
 
-// --- Komponenty Modali (Używamy teraz klasy .auth-container) ---
-
-const LoginModal = ({ onClose, switchToRegister, onLoginSuccess }) => (
-    // Zmieniamy .auth-modal na .auth-container dla lepszej integracji z Twoim CSS
-    <div className="auth-modal-wrapper"> 
-        <div className="auth-container">
-            <h2>Zaloguj się</h2>
-            <form onSubmit={(e) => { 
-                e.preventDefault(); 
-                onLoginSuccess();
-            }}>
-                <div className="form-group">
-                    <label htmlFor="email">Email</label>
-                    <input type="email" id="email" placeholder="Wprowadź email" required />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="password">Hasło</label>
-                    <input type="password" id="password" placeholder="Wprowadź hasło" required />
-                </div>
-                <button type="submit" className="submit-button">Zaloguj</button>
-            </form>
-            <div className="switch-text">
-                Nie masz konta? <span onClick={switchToRegister}>Zarejestruj się!</span>
-            </div>
-            <button className="close-modal" onClick={onClose}>&times;</button>
-        </div>
-    </div>
-);
-
-const RegisterModal = ({ onClose, switchToLogin }) => (
-    <div className="auth-modal-wrapper">
-        <div className="auth-container">
-            <h2>Rejestracja</h2>
-            <form onSubmit={(e) => { 
-                e.preventDefault(); 
-                alert('Rejestracja zakończona pomyślnie! Teraz się zaloguj.');
-                switchToLogin();
-            }}>
-                 <div className="form-group">
-                    <label htmlFor="username">Nazwa użytkownika</label>
-                    <input type="text" id="username" placeholder="Wprowadź nazwę" required />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="email">Email</label>
-                    <input type="email" id="email" placeholder="Wprowadź email" required />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="password">Hasło</label>
-                    <input type="password" id="password" placeholder="Wprowadź hasło" required />
-                </div>
-                <button type="submit" className="submit-button">Zarejestruj</button>
-            </form>
-            <div className="switch-text">
-                Masz już konto? <span onClick={switchToLogin}>Zaloguj się</span>
-            </div>
-            <button className="close-modal" onClick={onClose}>&times;</button>
-        </div>
-    </div>
-);
 
 function App() {
+    // Stan logowania i tokena
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userToken, setUserToken] = useState(null); 
+
+    // Stan UI
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [currentView, setCurrentView] = useState('home');
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [authModal, setAuthModal] = useState(null);
+    const [authModal, setAuthModal] = useState(null); // 'login', 'register', lub null
+
+    // Ładowanie tokena z localStorage przy starcie (dla trwałości sesji)
+    useEffect(() => {
+        const storedToken = localStorage.getItem('userToken');
+        if (storedToken) {
+            setUserToken(storedToken);
+            setIsLoggedIn(true);
+            setCurrentView('new-training'); // Przekieruj na główną stronę aplikacji po odświeżeniu
+        }
+    }, []);
+
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
     };
 
-    const handleLoginSuccess = () => {
+    /**
+     * Obsługa udanego logowania. Przechowuje token i aktualizuje stan.
+     * @param {string} token - Token JWT/sesji otrzymany z backendu.
+     */
+    const handleLoginSuccess = (token) => {
         setIsLoggedIn(true);
+        setUserToken(token);
+        localStorage.setItem('userToken', token); // Zapis tokena
         setAuthModal(null);
-        setCurrentView('new-training');
+        setCurrentView('new-training'); 
     };
 
     const navigateTo = (view) => {
         if (view === 'logout') {
             setIsLoggedIn(false);
+            setUserToken(null);
+            localStorage.removeItem('userToken'); // Usuwamy token z Local Storage
             setCurrentView('home');
         } else if (['new-training', 'my-trainings', 'stats'].includes(view)) {
             if (!isLoggedIn) {
-                setAuthModal('login');
+                setAuthModal('login'); 
             } else {
                 setCurrentView(view);
             }
         } else {
             setCurrentView(view);
         }
+        setIsMenuOpen(false); 
     };
 
     const openAuthModal = (mode) => {
         setAuthModal(mode);
     };
+    
+    // Funkcje do przełączania się między modalem
+    const switchToRegister = () => setAuthModal('register');
+    const switchToLogin = () => setAuthModal('login');
+
 
     const renderView = () => {
         switch (currentView) {
@@ -125,9 +98,6 @@ function App() {
                 return <HomePage />;
         }
     };
-    
-    const switchToRegister = () => setAuthModal('register');
-    const switchToLogin = () => setAuthModal('login');
 
     return (
         <div className="app-container">
@@ -152,22 +122,38 @@ function App() {
                 {renderView()}
             </main>
 
-            {/* Modale Autoryzacji są renderowane warunkowo */}
-            {(authModal === 'login' || authModal === 'register') && <div className="auth-overlay"></div>}
-            
-            {authModal === 'login' && <LoginModal onClose={() => setAuthModal(null)} switchToRegister={switchToRegister} onLoginSuccess={handleLoginSuccess} />}
-            {authModal === 'register' && <RegisterModal onClose={() => setAuthModal(null)} switchToLogin={switchToLogin} />}
+            {/* Modale Autoryzacji są renderowane warunkowo w wrapperze dla centrowania i blur */}
+            {(authModal === 'login' || authModal === 'register') && (
+                <>
+                    {/* Nakładka z efektem BLUR */}
+                    <div className="auth-overlay"></div>
+                    <div className="auth-modal-wrapper">
+                        {authModal === 'login' && <LoginForm 
+                            onClose={() => setAuthModal(null)} 
+                            switchToRegister={switchToRegister} 
+                            onLoginSuccess={handleLoginSuccess}
+                        />}
+                        {authModal === 'register' && <RegistrationForm 
+                            onClose={() => setAuthModal(null)} 
+                            switchToLogin={switchToLogin}
+                        />}
+                    </div>
+                </>
+            )}
 
             {/* DEBUG Button - pomaga testować stan logowania bez backendu */}
             <button 
                 className="toggle-login-state-btn"
                 onClick={() => {
-                    setIsLoggedIn(!isLoggedIn);
-                    setAuthModal(null);
-                    if (isLoggedIn) setCurrentView('home');
+                    if (!isLoggedIn) {
+                        // Symulacja udanego logowania i zapis tokena
+                        handleLoginSuccess('DEBUG_TOKEN_123');
+                    } else {
+                        navigateTo('logout');
+                    }
                 }}
             >
-                {isLoggedIn ? 'DEBUG: Wyloguj' : 'DEBUG: Zaloguj'}
+                {isLoggedIn ? `DEBUG: Wyloguj (${userToken ? userToken.substring(0, 10) : 'brak'})` : 'DEBUG: Zaloguj'}
             </button>
         </div>
     );
