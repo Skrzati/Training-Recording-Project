@@ -1,76 +1,86 @@
 package pl.MateuszJ.SavingWorkoutsApp.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer; // WAŻNY IMPORT!
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration; // WAŻNY IMPORT!
-import org.springframework.web.cors.CorsConfigurationSource; // WAŻNY IMPORT!
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource; // WAŻNY IMPORT!
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays; // Dodaj ten import
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // Użyjemy BCryptPasswordEncoder, tak jak wcześniej
-    @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder() {
-        return new BCryptPasswordEncoder();
+    // Poprawne użycie 'final' dla wstrzykiwanych zależności
+    private final AuthenticationProvider authenticationProvider;
+    private final UserDetailsService userDetailsService;
+
+    // Wstrzykiwanie przez pole (może być tutaj, aby uniknąć cyklu z AuthenticationManager)
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthFilter;
+
+    // Konstruktor do wstrzykiwania zależności
+    public SecurityConfig(AuthenticationProvider authenticationProvider, UserDetailsService userDetailsService) {
+        this.authenticationProvider = authenticationProvider;
+        this.userDetailsService = userDetailsService;
     }
 
-    // Nowa metoda do konfiguracji CORS (wymagana przez nowsze Spring Security)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // 1. Dopuszczone źródła (Frontend React)
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
-        // 2. Dopuszczone metody HTTP
+
+        // --- KLUCZOWA POPRAWKA A ---
+        // Upewnij się, że to jest POPRAWNY PORT Twojego Reacta/Frontendu (3000, 5173, etc.)
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:5173"));
+
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        // 3. Dopuszczone nagłówki
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        // 4. Pozwolenie na ciasteczka/autoryzację (dla przyszłego logowania)
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Zastosuj tę konfigurację do wszystkich ścieżek
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 // 1. Zastosowanie konfiguracji CORS
-                .cors(Customizer.withDefaults()) // Użyj skonfigurowanego powyżej beana CorsConfigurationSource
+                .cors(Customizer.withDefaults())
+
                 // 2. Wyłączenie CSRF
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable) // Zastąpienie deprecjonowanej metody
 
-                // 3. Reguły autoryzacji dla żądań
+                // 3. Konfiguracja zarządzania sesją - KLUCZOWA DLA JWT
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // 4. Reguły autoryzacji dla żądań
                 .authorizeHttpRequests(authorize -> authorize
-                        // Rejestracja (POST /users) i przyszłe logowanie (/auth/**) są publiczne
-                        .requestMatchers(HttpMethod.POST, "/register").permitAll() // Tylko POST na /users jest dozwolony
-                        .requestMatchers(HttpMethod.POST, "/login").permitAll()
-                        .requestMatchers("/auth/**").permitAll()
-
-                        // Użytkownicy mogą pobierać lub zapisywać treningi
-                        .requestMatchers("/api/workouts/**").hasAnyRole("USER", "ADMIN")
-
-                        // Administrator ma pełny dostęp do wszystkich pozostałych ścieżek
-                        // Wymaga to pewnej ostrożności; lepiej definiować ścieżki admina jawnie
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        // --- KLUCZOWA POPRAWKA B ---
+                        // Zezwól na wszystkie endpointy w Twoim AutenticationController
+                        .requestMatchers("/api.v1/auth/**").permitAll()
 
                         // Wymagaj uwierzytelnienia dla wszystkich pozostałych żądań
                         .anyRequest().authenticated()
                 )
 
-                // 4. Konfiguracja procesu logowania (Http Basic Auth)
-                .httpBasic(Customizer.withDefaults());
+                // 5. Dodanie niestandardowych elementów uwierzytelniania JWT:
+                .authenticationProvider(authenticationProvider)
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }

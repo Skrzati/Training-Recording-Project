@@ -19,10 +19,19 @@ repositories {
 }
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    // Existing dependencies
+    implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.projectlombok:lombok")
     implementation("org.springframework.boot:spring-boot-starter-security")
+
+    // JJWT Dependencies (using version 0.11.5 as seen in the image)
+    val jjwtVersion = "0.11.5"
+    implementation("io.jsonwebtoken:jjwt-api:$jjwtVersion") // For the API
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:$jjwtVersion") // For the implementation
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jjwtVersion") // For JSON processing (Jackson)
+
+    // Existing Test and Runtime dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.security:spring-security-test")
     "developmentOnly"("org.springframework.boot:spring-boot-devtools")

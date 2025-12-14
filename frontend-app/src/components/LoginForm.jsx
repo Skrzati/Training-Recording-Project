@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 // Ważne: Wszystkie style są w App.css, więc ten plik nie musi importować dodatkowego CSS.
 
-const API_URL = 'http://localhost:8080/login';
+// UWAGA: ADRES URL ZMIENIONY, ABY PASOWAŁ DO SPRING BOOT (POST /api.v1/auth/autenticate)
+const API_URL = 'http://localhost:8080/api.v1/auth/autenticate'; 
 
 /**
  * Komponent formularza logowania z logiką komunikacji z API.
@@ -14,7 +15,7 @@ const API_URL = 'http://localhost:8080/login';
  */
 const LoginForm = ({ onClose, switchToRegister, onLoginSuccess }) => {
     const [formData, setFormData] = useState({
-        username: '', // Używam username, ale możesz zmienić na email w zależności od backendu
+        username: '', // Używamy tego jako 'email'
         password: '',
     });
     const [message, setMessage] = useState('');
@@ -34,32 +35,45 @@ const LoginForm = ({ onClose, switchToRegister, onLoginSuccess }) => {
         setIsError(false);
         setIsLoading(true);
 
+        const { username, password } = formData;
+        
         try {
-            const response = await fetch(API_URL, {
+            // Spring oczekuje pól email i password
+            const response = await fetch(API_URL, { 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                // WAŻNE: WYSYŁAMY 'username' POD KLUCZEM 'email'
+                body: JSON.stringify({ email: username, password }), 
             });
+            
+            // Odpowiedź Spring jest w JSON (czy to sukces, czy błąd)
+            const data = await response.json().catch(() => ({})); 
 
-            if (response.ok) {
-                // Załóżmy, że backend zwraca obiekt { token: '...' } lub podobny
-                const data = await response.json(); 
+            if (response.ok) { // Status 200-299
                 
-                // Kluczowy moment: przekazanie tokena i wywołanie sukcesu
-                onLoginSuccess(data.token); 
+                // --- KLUCZOWA ZMIANA: Odczyt tokenu z Ciała JSON (z pola 'token') ---
+                const rawToken = data.token; 
                 
-                setMessage('Zalogowano pomyślnie! Przekierowanie...');
-                // Zamknięcie modala następuje w App.jsx po wywołaniu onLoginSuccess
+                if (rawToken) {
+                    // Wymagane przez standard JWT: 'Bearer <token>'
+                    const tokenWithPrefix = `Bearer ${rawToken}`; 
+                    onLoginSuccess(tokenWithPrefix); // Zapis tokena
+                    setMessage('Login successful!');
+                } else {
+                    setMessage('Login successful, but token not found in response.');
+                    setIsError(true);
+                }
+
             } else {
-                const errorData = await response.json().catch(() => ({ message: 'Niepoprawny login lub hasło.' }));
-                setMessage(`Błąd logowania: ${errorData.message || 'Wystąpił błąd po stronie serwera.'}`);
+                // Obsługa błędu (np. 401 Unauthorized lub 500 Internal Server Error)
+                setMessage(`Logowanie nieudane: ${data.message || response.statusText}`);
                 setIsError(true);
             }
         } catch (error) {
             console.error('Błąd połączenia z API:', error);
-            setMessage('Błąd sieci: Nie udało się połączyć z serwerem (http://localhost:8080/login).');
+            setMessage('Błąd sieci: Nie udało się połączyć z serwerem (8080).');
             setIsError(true);
         } finally {
             setIsLoading(false);
