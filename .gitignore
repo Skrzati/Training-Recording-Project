@@ -1,37 +1,70 @@
-HELP.md
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### STS ###
-.apt_generated
+# ----------------------------------------------------
+# 1. Kompilacja/Budowa (Java/Gradle)
+# ----------------------------------------------------
+/bin/
+/build/
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar  # Utrzymaj wrapper Gradle w repozytorium
+.settings/
+out/
+.stabs
+.project
+.idea
 .classpath
 .factorypath
-.project
-.settings
 .springBeans
 .sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+# Pliki tymczasowe
+*.log
+*.bak
+*.swp
+*.orig
 
-### IntelliJ IDEA ###
+# ----------------------------------------------------
+# 2. IDE / System (IntelliJ IDEA, VS Code, Eclipse/STS)
+# ----------------------------------------------------
+# IntelliJ IDEA
 .idea/
 *.iws
 *.iml
 *.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
-### NetBeans ###
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-
-### VS Code ###
+# VS Code
 .vscode/
+
+# ----------------------------------------------------
+# 3. Node.js (Frontend / Backend Node)
+#    Te pliki i katalogi są generowane automatycznie i NIE powinny
+#    być commitowane do repozytorium Git.
+# ----------------------------------------------------
+# Zależności Node.js
+/node_modules/
+# Vite cache/dependencies (jeśli w katalogu głównym)
+.vite/
+# Pliki lock (zwykle niekomitowane w monorepo, ale można je zostawić)
+package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ----------------------------------------------------
+# 4. Pliki wrażliwe/Środowiskowe
+# ----------------------------------------------------
+# Pliki ze zmiennymi środowiskowymi (Klucze API, hasła, etc.)
+# Należy je usunąć z repozytorium: `git rm --cached <plik>`
+.env
+.env.*
+.env.local
+.env.*local
+.DS_Store
+
+# ----------------------------------------------------
+# 5. Dostosowanie dla sugerowanej struktury Monorepo
+# ----------------------------------------------------
+# Jeśli przeniesiesz frontend do /frontend/ i backend do /backend-java/
+# Te reguły pozostaną w mocy, ponieważ ignorują pliki w całym repo.
