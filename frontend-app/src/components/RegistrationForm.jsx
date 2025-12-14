@@ -1,8 +1,9 @@
-// frontend-app/src/components/RegistrationForm.jsx
+// frontend-app/src/components/RegistrationForm.jsx (NOWA WERSJA)
 
 import React, { useState } from 'react';
 
-const API_URL = 'http://localhost:8080/register';
+// UWAGA: ADRES URL ZGODNY Z SPRING BOOT
+const API_URL = 'http://localhost:8080/api.v1/auth/register'; 
 
 /**
  * Komponent formularza rejestracji z logiką komunikacji z API.
@@ -11,8 +12,11 @@ const API_URL = 'http://localhost:8080/register';
  * @param {function} props.switchToLogin - Funkcja przełączająca na modal logowania.
  */
 const RegistrationForm = ({ onClose, switchToLogin }) => {
+    // Stan formularza rozszerzony o osobne pola firstName, lastName i username
     const [formData, setFormData] = useState({
-        username: '',
+        firstName: '',
+        lastName: '',
+        username: '', 
         email: '',
         password: '',
     });
@@ -33,10 +37,13 @@ const RegistrationForm = ({ onClose, switchToLogin }) => {
         setIsError(false);
         setIsLoading(true);
 
+        const { password } = formData;
+        
+        // Dane do wysłania: wszystkie pola bezpośrednio z formData
+        const dataToSend = formData; 
+
         try {
-            // Walidacja hasła, którą miałeś w oryginalnym kodzie, została usunięta
-            // na rzecz tej w LoginForm.jsx. Jeśli potrzebujesz jej tu, dodaj:
-            if (formData.password.length < 6) {
+            if (password.length < 6) {
                 setMessage('Hasło musi mieć co najmniej 6 znaków.');
                 setIsError(true);
                 setIsLoading(false);
@@ -48,25 +55,27 @@ const RegistrationForm = ({ onClose, switchToLogin }) => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData), 
+                body: JSON.stringify(dataToSend), 
             });
 
-            if (response.ok) {
+            const data = await response.json().catch(() => ({})); 
+
+            if (response.ok || response.status === 201) {
                 setMessage('Rejestracja pomyślna! Przekierowujemy do logowania.');
                 setIsError(false);
-                setFormData({ username: '', email: '', password: '' }); 
+                // Resetowanie formularza
+                setFormData({ firstName: '', lastName: '', username: '', email: '', password: '' }); 
                 
-                // Po udanej rejestracji, poczekaj 2 sekundy i przełącz na logowanie
                 setTimeout(switchToLogin, 2000); 
 
             } else {
-                const errorData = await response.json().catch(() => ({ message: 'Wystąpił błąd po stronie serwera.' }));
-                setMessage(`Błąd rejestracji: ${errorData.message || 'Wystąpił błąd po stronie serwera.'}`); 
+                // Obsługa błędów zwróconych przez Spring (np. 400 Bad Request przy nieunikalnym username/email)
+                setMessage(`Błąd rejestracji: ${data.message || 'Wystąpił błąd po stronie serwera.'}`); 
                 setIsError(true);
             }
         } catch (error) {
             console.error('Błąd połączenia z API:', error);
-            setMessage('Błąd sieci: Nie udało się połączyć z serwerem (8080/register).');
+            setMessage('Błąd sieci: Nie udało się połączyć z serwerem (8080).');
             setIsError(true);
         } finally {
             setIsLoading(false);
@@ -78,6 +87,33 @@ const RegistrationForm = ({ onClose, switchToLogin }) => {
             <button className="close-modal" onClick={onClose} disabled={isLoading}>&times;</button>
             <h2>Rejestracja</h2>
             <form onSubmit={handleSubmit}>
+                {/* DODANE POLE: IMIĘ */}
+                <div className="form-group">
+                    <label htmlFor="firstName">Imię:</label>
+                    <input
+                        type="text"
+                        id="firstName"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleChange}
+                        disabled={isLoading}
+                        required
+                    />
+                </div>
+                {/* DODANE POLE: NAZWISKO */}
+                <div className="form-group">
+                    <label htmlFor="lastName">Nazwisko:</label>
+                    <input
+                        type="text"
+                        id="lastName"
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleChange}
+                        disabled={isLoading}
+                        required
+                    />
+                </div>
+                {/* DODANE POLE: USERNAME (jako identyfikator do logowania) */}
                 <div className="form-group">
                     <label htmlFor="username">Nazwa użytkownika:</label>
                     <input
@@ -90,6 +126,7 @@ const RegistrationForm = ({ onClose, switchToLogin }) => {
                         required
                     />
                 </div>
+                {/* POLE EMAIL */}
                 <div className="form-group">
                     <label htmlFor="email">Email:</label>
                     <input
@@ -102,6 +139,7 @@ const RegistrationForm = ({ onClose, switchToLogin }) => {
                         required
                     />
                 </div>
+                {/* POLE HASŁO */}
                 <div className="form-group">
                     <label htmlFor="password">Hasło:</label>
                     <input
@@ -114,6 +152,7 @@ const RegistrationForm = ({ onClose, switchToLogin }) => {
                         required
                     />
                 </div>
+
                 <button 
                     type="submit" 
                     className="submit-button"
