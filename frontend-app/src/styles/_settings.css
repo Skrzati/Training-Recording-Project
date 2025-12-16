@@ -1,0 +1,13 @@
+/* src/styles/_settings.css */
+
+:root {
+    --primary-color: #ff3c00;
+    --secondary-color: #00e676;
+    --background-dark: #121212;
+    --surface-dark: #1e1e1e;
+    --input-bg-color: #0a0a0a;
+    --text-light: #e0e0e0;
+    --text-muted: #aaaaaa;
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --neon-shadow: 0 0 5px var(--primary-color), 0 0 10px rgba(255, 60, 0, 0.4);
+}

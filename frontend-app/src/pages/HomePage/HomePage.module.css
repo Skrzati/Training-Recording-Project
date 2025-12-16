@@ -1,0 +1,127 @@
+/* src/pages/HomePage.module.css */
+
+.homeContainer {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.mainHeader {
+    font-size: 3rem;
+    font-weight: 900;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.fitText {
+    color: var(--primary-color); /* Neon pomarańcz/czerwień */
+    text-shadow: 0 0 5px var(--primary-color), 0 0 15px rgba(255, 60, 0, 0.4);
+}
+
+.logText {
+    color: var(--text-light);
+}
+
+.tagline {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    margin-bottom: 40px;
+}
+
+/* KARTY FUNKCJONALNOŚCI */
+.ctaGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    margin-bottom: 50px;
+    padding: 0 10px;
+}
+
+.featureCard {
+    background-color: var(--input-bg-color); /* Bardzo ciemny */
+    padding: 25px;
+    border-radius: 10px;
+    border-top: 3px solid var(--secondary-color);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-align: left;
+}
+
+.featureCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+}
+
+.featureCard h2 {
+    color: var(--secondary-color); /* Zielony */
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+    text-shadow: 0 0 5px rgba(0, 230, 118, 0.3);
+}
+
+.featureCard p {
+    color: var(--text-muted);
+}
+
+/* PRZYCISKI AKCJI (CALL TO ACTION) */
+.authButtons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 450px;
+    margin: 0 auto 30px auto;
+}
+
+.authBtn {
+    padding: 16px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.registerBtn {
+    background-color: var(--primary-color);
+    color: var(--background-dark);
+    box-shadow: var(--neon-shadow);
+}
+
+.registerBtn:hover {
+    background-color: #ff5e26;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(255, 60, 0, 0.6);
+}
+
+.loginBtn {
+    background-color: var(--surface-dark);
+    color: var(--secondary-color);
+    border: 2px solid var(--secondary-color);
+    box-shadow: 0 0 8px rgba(0, 230, 118, 0.4);
+}
+
+.loginBtn:hover {
+    background-color: rgba(0, 230, 118, 0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 0 12px rgba(0, 230, 118, 0.6);
+}
+
+.bottomText {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+@media (min-width: 768px) {
+    .authButtons {
+        flex-direction: row;
+        max-width: 100%;
+        justify-content: center;
+    }
+}

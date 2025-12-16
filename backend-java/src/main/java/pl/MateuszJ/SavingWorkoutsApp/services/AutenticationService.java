@@ -5,12 +5,11 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import pl.MateuszJ.SavingWorkoutsApp.controller.AutenticationRequest;
 import pl.MateuszJ.SavingWorkoutsApp.controller.AutenticationResponse;
-import pl.MateuszJ.SavingWorkoutsApp.controller.RegisterRequest;
 import pl.MateuszJ.SavingWorkoutsApp.repository.UserRepository;
 import pl.MateuszJ.SavingWorkoutsApp.model.User;
 import pl.MateuszJ.SavingWorkoutsApp.model.User.Role;
+
 
 import java.util.Optional;
 
@@ -18,10 +17,10 @@ import java.util.Optional;
 @Service
 public class AutenticationService {
 
-    public final UserRepository userRepository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    public final AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
 
     public AutenticationService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
@@ -29,28 +28,21 @@ public class AutenticationService {
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
     }
-
-    // Prosta metoda pomocnicza do logiki autentykacji
     private boolean isEmail(String identifier) {
         return identifier != null && identifier.contains("@");
     }
+    public AutenticationResponse register(String firstName, String lastName, String username, String email, String password) {
 
-
-    public AutenticationResponse register(RegisterRequest request) {
-
-        // --- WALIDACJA UNIKALNOŚCI PRZED ZAPISEM ---
-        // Teraz używamy request.getUsername() jako drugiego argumentu
-        if (userRepository.findByEmailOrUsername(request.getEmail(), request.getUsername()).isPresent()) {
+        if (userRepository.findByEmailOrUsername(email, username).isPresent()) {
             throw new IllegalStateException("Użytkownik o podanym emailu lub nazwie użytkownika już istnieje.");
         }
-        // ---------------------------------------------
 
         var user = User.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .username(request.getUsername()) // UŻYWA NOWEGO POLA Z REQUESTA
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
+                .firstName(firstName)
+                .lastName(lastName)
+                .username(username)
+                .email(email)
+                .password(passwordEncoder.encode(password))
                 .role(Role.USER)
                 .build();
 
@@ -62,14 +54,11 @@ public class AutenticationService {
                 .build();
     }
 
-    public AutenticationResponse autenticate(AutenticationRequest request) {
-
+    public AutenticationResponse autenticate(String identifier, String password) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(identifier, password)
         );
 
-        // Wyszukanie użytkownika, aby pobrać obiekt User (identyfikator to email LUB username)
-        String identifier = request.getEmail();
         Optional<User> userOptional;
 
         if (isEmail(identifier)) {

@@ -2,7 +2,10 @@
 # 1. Kompilacja/Budowa (Java/Gradle)
 # ----------------------------------------------------
 /bin/
+/backend-java/build/   
 /build/
+*.jar
+*.war
 .gradle/
 !gradle/wrapper/gradle-wrapper.jar  # Utrzymaj wrapper Gradle w repozytorium
 .settings/

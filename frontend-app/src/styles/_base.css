@@ -1,0 +1,32 @@
+/* src/styles/_base.css */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body, html, #root {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--background-dark);
+    color: var(--text-light);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Animacja wejścia modali (musi być dostępna globalnie) */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95); 
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}

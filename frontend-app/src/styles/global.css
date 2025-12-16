@@ -1,0 +1,10 @@
+/* src/styles/global.css */
+
+/* 1. SETTINGS / ZMIENNE */
+@import url('./_settings.css');
+
+/* 2. BASE / RESET */
+@import url('./_base.css');
+
+/* 3. LAYOUT / UKŁAD (Navbar, App Containers, Overlays) */
+@import url('./_layout.css');

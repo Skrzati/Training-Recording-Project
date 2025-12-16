@@ -1,48 +1,44 @@
-/**
- * Wysłanie żądania do API z automatycznym dołączeniem tokena JWT, jeśli jest dostępny.
- * @param {string} endpoint - Ścieżka do API (np. '/workouts').
- * @param {object} options - Opcje dla funkcji fetch (np. method, body).
- * @returns {Promise<Response>}
- */
-export async function authenticatedFetch(endpoint, options = {}) {
-  // 1. Pobierz token z localStorage
-  const token = localStorage.getItem('token');
-  
-  // 2. Przygotuj nagłówki
-  const headers = {
-    ...options.headers,
-    // Ustawienie Content-Type na JSON jest dobrym zwyczajem, 
-    // chyba że przesyłasz pliki (FormData)
-    'Content-Type': 'application/json',
-  };
+import { getStoredToken } from '../context/AuthContext';
 
-  // 3. Dodaj nagłówek Authorization, jeśli token istnieje
-  if (token) {
-    // Backend oczekuje, że cały nagłówek (np. 'Bearer <token>') zostanie użyty.
-    // Domyślnie, token powinien być zapisany w formacie 'Bearer xxx.yyy.zzz'
-    headers['Authorization'] = token;
-  }
-  
-  // 4. Upewnij się, że body jest stringiem, jeśli headers.Content-Type to application/json
-  let body = options.body;
-  if (headers['Content-Type'] === 'application/json' && typeof options.body === 'object' && options.body !== null) {
-      body = JSON.stringify(options.body);
-  }
+export const fetchWithAuth = async (endpoint, options = {}) => {
+    
+    const token = getStoredToken();
+    const headers = options.headers || {};
+    
+    if (!token) {
+        throw new Error("Brak tokena autoryzacji. Zaloguj się, aby uzyskać dostęp.");
+    }
 
-  // 5. Wyślij żądanie do API
-  const response = await fetch(endpoint, {
-    ...options,
-    headers,
-    body: body,
-  });
+    headers['Authorization'] = token; 
+    
+    if (options.body && !headers['Content-Type']) {
+        headers['Content-Type'] = 'application/json';
+    }
 
-  // 6. Opcjonalnie: obsłuż status 401/403 (Unauthorized/Forbidden)
-  if (response.status === 401 || response.status === 403) {
-      // W przypadku braku autoryzacji, usuń token i przekieruj do logowania
-      localStorage.removeItem('token');
-      console.error('Brak autoryzacji. Usuwam token i przekierowuję do logowania.');
-      // window.location.href = '/login'; // Opcjonalne przekierowanie
-  }
+    const config = {
+        ...options,
+        headers,
+    };
 
-  return response;
-}
+    try {
+        const BASE_API_URL = 'http://localhost:8080/api.v1'; 
+        const url = `${BASE_API_URL}${endpoint}`;
+
+        const response = await fetch(url, config);
+        
+        const data = await response.json().catch(() => ({})); 
+
+        if (response.ok) {
+            return data;
+        } else if (response.status === 401 || response.status === 403) {
+            throw new Error(`Autoryzacja nieudana: ${data.message || 'Token niepoprawny lub wygasł.'}`);
+        } else {
+            throw new Error(`Błąd serwera: ${data.message || response.statusText}`);
+        }
+    } catch (error) {
+        if (error instanceof TypeError) {
+             throw new Error('Błąd sieci: Nie udało się połączyć z serwerem API.');
+        }
+        throw error;
+    }
+};

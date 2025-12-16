@@ -1,0 +1,187 @@
+/* src/styles/_layout.css */
+
+/* ==================================== */
+/* KONTENER GŁÓWNY (TŁO I PARALLAX) */
+/* ==================================== */
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    position: relative;
+    
+    background-image: linear-gradient(rgba(18, 18, 18, 0.9), rgba(18, 18, 18, 0.9)), url('https://picsum.photos/1920/1080'); 
+    background-size: cover;
+    background-attachment: fixed;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.9) inset;
+}
+
+/* Efekt mgły na dole */
+.app-container::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 150px; 
+    background: linear-gradient(to top, var(--background-dark) 20%, rgba(18, 18, 18, 0));
+    pointer-events: none;
+}
+
+
+/* ==================================== */
+/* NAGŁÓWEK / NAV BAR */
+/* ==================================== */
+
+.navbar {
+    background-color: var(--surface-dark);
+    padding: 0.8rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    letter-spacing: 1px;
+    flex-grow: 1; 
+    text-align: center;
+    text-shadow: 0 0 5px rgba(255, 60, 0, 0.6), 0 0 15px rgba(255, 60, 0, 0.3);
+    transition: text-shadow 0.3s ease-in-out;
+}
+
+/* Ikony w Navbar (toggle i profile) */
+.menu-toggle, .profile-btn {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 10px;
+    opacity: 0.8;
+    transition: color 0.2s, box-shadow 0.2s, transform 0.1s;
+    border-radius: 50%;
+}
+
+.menu-toggle:hover, .profile-btn:hover {
+    color: var(--primary-color);
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(255, 60, 0, 0.5); 
+    transform: scale(1.05);
+}
+
+.desktop-profile-only, .mobile-only-menu {
+    display: block; 
+}
+
+
+/* ==================================== */
+/* GŁÓWNA TREŚĆ / WIDOK (CONTENT & PAGE-CONTENT) */
+/* ==================================== */
+
+.content {
+    padding: 1rem;
+    flex-grow: 1;
+    width: 100%; 
+}
+
+.page-content {
+    padding: 30px;
+    background-color: var(--surface-dark);
+    border-radius: 12px; 
+    margin-top: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+    border-left: 5px solid var(--primary-color); 
+}
+
+.page-content h1 {
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+    padding-bottom: 10px;
+    font-size: 1.8rem;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+
+/* ==================================== */
+/* MODALE / OVERLAYS */
+/* ==================================== */
+
+/* Nakładka z Blur (dla modali Autoryzacji) */
+.auth-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6); 
+    z-index: 150;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Wrapper dla centrowania modala */
+.auth-modal-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 210; 
+}
+
+/* Tło/Overlay dla otwartego Menu Hamburgera */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 190;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+
+/* ==================================== */
+/* POZOSTAŁE & MEDIA QUERIES */
+/* ==================================== */
+
+/* DEBUG Button */
+.toggle-login-state-btn {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    z-index: 300;
+    padding: 8px 12px;
+    background-color: #333;
+    color: var(--secondary-color);
+    border: 1px solid var(--secondary-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    box-shadow: var(--neon-shadow);
+}
+.toggle-login-state-btn:hover {
+    background-color: #444;
+}
+
+@media (min-width: 768px) {
+    .content {
+        padding: 30px 40px; 
+    }
+    
+    .page-content {
+        padding: 40px 30px;
+    }
+}
