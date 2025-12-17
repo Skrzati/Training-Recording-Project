@@ -1,353 +1,222 @@
-import React, { useState, useEffect } from 'react';
-import { fetchWithAuth } from '../../api/api'; // <--- Poprawiony import
-import styles from './NewTrainingPage.module.css'; 
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Dodane dla płynnego przejścia
+import { fetchWithAuth } from '../../api/api';
+import styles from './NewTrainingPage.module.css';
 
-// ===================================================================
-// KOMPONENT GŁÓWNY: NewTrainingPage
-// ===================================================================
+const CATEGORIES = [
+    { key: 'strength', name: 'Trening Siłowy' },
+    { key: 'run', name: 'Bieganie' }
+];
 
 const NewTrainingPage = () => {
-    const [categories, setCategories] = useState([]);
-    const [selectedCategoryKey, setSelectedCategoryKey] = useState('strength');
-    
-    const initialFormData = {
+    const navigate = useNavigate();
+    const [selectedKey, setSelectedKey] = useState('strength');
+    const [status, setStatus] = useState({ type: '', msg: '' });
+    const [isLoading, setIsLoading] = useState(false);
+
+    const [formData, setFormData] = useState({
         name: '',
         workout_date: new Date().toISOString().split('T')[0],
         duration_minutes: '',
-        notes: '',
-        details: [], 
-    };
-    const [formData, setFormData] = useState(initialFormData);
-    const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
+        notes: ''
+    });
 
-    // Funkcja do pobierania kategorii
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                // KLUCZOWA ZMIANA: Użycie isPublic = true dla publicznego endpointu kategorii
-                const response = await fetchWithAuth('/workouts/categories', {}, true); 
-                const fetchedCategories = Array.isArray(response) ? response : (response.rows || response);
-                
-                setCategories(fetchedCategories);
-                
-                if (fetchedCategories.length > 0) {
-                    const defaultKey = fetchedCategories.find(c => c.category_key === 'strength')?.category_key || fetchedCategories[0].category_key;
-                    setSelectedCategoryKey(defaultKey);
-                    
-                    const initialDetails = defaultKey === 'run' ? {} : [];
-                    setFormData(prev => ({ 
-                        ...prev, 
-                        details: initialDetails 
-                    }));
-                }
-            } catch (err) {
-                console.error('Błąd pobierania kategorii:', err);
-                setError(`Nie udało się załadować typów treningów: ${err.message}.`);
-            }
-        };
-        fetchCategories();
-    }, []); 
+    const [strengthDetails, setStrengthDetails] = useState({ 
+        exercise_name: '', 
+        repetitions: '', 
+        weight: '' 
+    });
 
-    // Obsługa zmiany podstawowych pól formularza
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        
-        if (name === 'category_select') {
-            setSelectedCategoryKey(value);
-            setFormData(prev => ({ 
-                ...prev, 
-                details: value === 'strength' ? [] : (value === 'run' ? {} : null) 
-            }));
-        } else {
-            setFormData(prev => ({ ...prev, [name]: value }));
-        }
-    };
-    
-    // Obsługa wysłania formularza
+    const [runDetails, setRunDetails] = useState({ 
+        distance_km: '', 
+        hours: '0', 
+        minutes: '0', 
+        seconds: '0', 
+        average_heart_rate: '' 
+    });
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-        setMessage('');
+        setIsLoading(true);
+        setStatus({ type: '', msg: '' });
 
-        if (categories.length === 0) {
-             return setError('Nie można zapisać. Nie załadowano kategorii treningu.');
+        // PRZYGOTOWANIE DETAILS ZGODNIE Z TYPEM KATEGORII
+        let details;
+        if (selectedKey === 'strength') {
+            details = [{ ...strengthDetails, set_number: 1 }];
+        } else {
+            // KLUCZOWE: Musimy wysłać te same klucze, których szuka Twój Service (hours, minutes, seconds)
+            details = { 
+                distance_km: runDetails.distance_km,
+                hours: runDetails.hours || '0',
+                minutes: runDetails.minutes || '0',
+                seconds: runDetails.seconds || '0',
+                average_heart_rate: runDetails.average_heart_rate
+            };
         }
 
-        const finalData = {
+        const payload = {
             ...formData,
-            category_key: selectedCategoryKey,
-            duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes, 10) : null
+            category_key: selectedKey,
+            duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : 0,
+            details: details
         };
-        
-        // Ręczna walidacja front-end (jak ustaliliśmy)
-        if (selectedCategoryKey === 'strength') {
-            if (!Array.isArray(finalData.details) || finalData.details.length === 0) {
-                return setError('Trening siłowy wymaga dodania co najmniej jednej serii.');
-            }
-            finalData.details = finalData.details.map(item => ({
-                ...item,
-                repetitions: item.repetitions === '' ? null : item.repetitions,
-                weight: item.weight === '' ? null : item.weight,
-                exercise_name: item.exercise_name.trim()
-            }));
-            if (finalData.details.some(item => !item.exercise_name)) {
-                return setError('Każda seria musi mieć podaną nazwę ćwiczenia.');
-            }
-        }
-        if (selectedCategoryKey === 'run' && (!finalData.details || finalData.details.distance_km === '' || finalData.details.time_seconds === '')) {
-            return setError('Trening biegowy wymaga podania dystansu i czasu w sekundach.');
-        }
 
         try {
-            // Wysłanie danych (POST, wymaga tokena - isPublic domyślnie false)
             await fetchWithAuth('/workouts', {
-                 method: 'POST',
-                 body: JSON.stringify(finalData)
+                method: 'POST',
+                body: JSON.stringify(payload)
             });
+            setStatus({ type: 'success', msg: 'Trening zapisany! Przenoszę do historii...' });
             
-            setMessage('Trening zapisany pomyślnie!');
-            
-            setFormData(initialFormData);
-            setFormData(prev => ({ 
-                ...initialFormData,
-                details: selectedCategoryKey === 'run' ? {} : []
-            }));
+            // Przekierowanie do historii po sukcesie
+            setTimeout(() => {
+                navigate('/history');
+            }, 1500);
 
         } catch (err) {
-            const apiError = err.message || err.response?.data?.msg || 'Błąd zapisu treningu. Brak tokena autoryzacji?';
-            setError(apiError);
-            console.error('Błąd zapisu:', err);
+            setStatus({ type: 'error', msg: err.message });
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
         <div className={styles.pageContainer}>
-            <h2>Dodaj Nowy Trening</h2>
-            
-            {error && <p className={styles.error}>{error}</p>}
-            {message && <p className={styles.success}>{message}</p>}
-            
-            {categories.length > 0 && (
+            <div className={styles.card}>
+                <h2 className={styles.title}>Dodaj Nowy Trening</h2>
+                
+                {status.msg && (
+                    <div className={status.type === 'error' ? styles.errorAlert : styles.successAlert}>
+                        {status.msg}
+                    </div>
+                )}
+                
                 <form onSubmit={handleSubmit} className={styles.form}>
-                    
                     <div className={styles.formGroup}>
-                        <label htmlFor="category_select">Typ Treningu:</label>
-                        <select 
-                            id="category_select"
-                            name="category_select"
-                            value={selectedCategoryKey}
-                            onChange={handleChange}
-                            required
-                        >
-                            {categories.map(cat => (
-                                <option key={cat.category_id} value={cat.category_key}>
-                                    {cat.category_name}
-                                </option>
-                            ))}
+                        <label>Typ aktywności</label>
+                        <select value={selectedKey} onChange={(e) => setSelectedKey(e.target.value)}>
+                            {CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.name}</option>)}
                         </select>
                     </div>
-                    
-                    <div className={styles.formGroup}>
-                        <label htmlFor="name">Nazwa Treningu:</label>
-                        <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required />
-                    </div>
-                    
-                    <div className={styles.formGroup}>
-                        <label htmlFor="workout_date">Data:</label>
-                        <input type="date" id="workout_date" name="workout_date" value={formData.workout_date} onChange={handleChange} required />
-                    </div>
 
                     <div className={styles.formGroup}>
-                        <label htmlFor="duration_minutes">Czas trwania (minuty):</label>
-                        <input type="number" id="duration_minutes" name="duration_minutes" value={formData.duration_minutes} onChange={handleChange} min="1" />
-                    </div>
-                    
-                    <div className={styles.formGroup}>
-                        <label htmlFor="notes">Notatki:</label>
-                        <textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} rows="3" />
-                    </div>
-
-                    <DynamicDetailsForm 
-                        categoryKey={selectedCategoryKey} 
-                        details={formData.details} 
-                        setDetails={(newDetails) => setFormData(prev => ({ ...prev, details: newDetails }))}
-                    />
-                    
-                    <button type="submit" className={styles.buttonPrimary}>Zapisz Trening</button>
-                </form>
-            )}
-            {categories.length === 0 && !error && <p>Ładowanie formularza...</p>}
-        </div>
-    );
-};
-
-
-// ===================================================================
-// KOMPONENTY POMOCNICZE (bez zmian)
-// ===================================================================
-
-const DynamicDetailsForm = ({ categoryKey, details, setDetails }) => {
-    switch (categoryKey) {
-        case 'run':
-            return <RunDetailsForm details={details} setDetails={setDetails} />;
-        case 'strength':
-            return <StrengthDetailsForm details={details} setDetails={setDetails} />;
-        default:
-            return <p>Wybierz typ treningu, aby dodać szczegóły.</p>;
-    }
-}
-
-// --- RunDetailsForm i StrengthDetailsForm - pozostają takie same ---
-
-const RunDetailsForm = ({ details, setDetails }) => {
-    const handleDetailChange = (e) => {
-        const { name, value } = e.target;
-        
-        let processedValue = value;
-        if (['distance_km', 'time_seconds', 'max_heart_rate', 'average_heart_rate'].includes(name) && value !== '') {
-            processedValue = parseFloat(value);
-            if (isNaN(processedValue)) processedValue = value; 
-        }
-
-        setDetails(prev => ({ 
-            ...prev, 
-            [name]: processedValue 
-        }));
-    };
-
-    return (
-        <div className={styles.detailsSection}>
-            <h3>Szczegóły Biegania</h3>
-            <div className={styles.formGroup}>
-                <label htmlFor="distance_km">Dystans (km):</label>
-                <input type="number" id="distance_km" name="distance_km" value={details.distance_km || ''} onChange={handleDetailChange} step="0.01" required />
-            </div>
-            <div className={styles.formGroup}>
-                <label htmlFor="time_seconds">Czas (sekundy):</label>
-                <input type="number" id="time_seconds" name="time_seconds" value={details.time_seconds || ''} onChange={handleDetailChange} min="1" required />
-            </div>
-            <div className={styles.formGroup}>
-                <label htmlFor="average_heart_rate">Średnie Tętno (opcjonalnie):</label>
-                <input type="number" id="average_heart_rate" name="average_heart_rate" value={details.average_heart_rate || ''} onChange={handleDetailChange} min="1" />
-            </div>
-            <div className={styles.formGroup}>
-                <label htmlFor="max_heart_rate">Maksymalne Tętno (opcjonalnie):</label>
-                <input type="number" id="max_heart_rate" name="max_heart_rate" value={details.max_heart_rate || ''} onChange={handleDetailChange} min="1" />
-            </div>
-        </div>
-    );
-};
-
-const StrengthDetailsForm = ({ details, setDetails }) => {
-    
-    const addSet = () => {
-        setDetails(prev => [
-            ...prev,
-            {
-                exercise_name: '',
-                set_number: prev.length + 1,
-                repetitions: '',
-                weight: '',
-                unit: 'kg',
-            }
-        ]);
-    };
-    
-    const removeSet = (indexToRemove) => {
-        const newDetails = details
-            .filter((_, index) => index !== indexToRemove)
-            .map((item, index) => ({
-                ...item,
-                set_number: index + 1
-            }));
-        setDetails(newDetails);
-    };
-
-    const handleSetChange = (index, e) => {
-        const { name, value } = e.target;
-        const newDetails = details.map((item, i) => {
-            if (i === index) {
-                let processedValue = value;
-                
-                if ((name === 'repetitions' || name === 'weight') && value !== '') {
-                    processedValue = parseFloat(value);
-                    if (isNaN(processedValue)) {
-                        processedValue = value; 
-                    }
-                }
-                
-                return {
-                    ...item,
-                    [name]: processedValue,
-                };
-            }
-            return item;
-        });
-        setDetails(newDetails);
-    };
-
-    return (
-        <div className={styles.detailsSection}>
-            <h3>Szczegóły Treningu Siłowego (Seria)</h3>
-            <p className={styles.note}>Wpisz nazwę ćwiczenia i dodawaj kolejne serie, ciężar jest opcjonalny.</p>
-            
-            {details.map((item, index) => (
-                <div key={index} className={styles.setRow}>
-                    <h4>Seria {item.set_number}</h4>
-                    <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-                        <label>Ćwiczenie:</label>
+                        <label>Nazwa treningu</label>
                         <input 
-                            type="text"
-                            name="exercise_name"
-                            value={item.exercise_name}
-                            onChange={(e) => handleSetChange(index, e)}
-                            placeholder="Np. Wyciskanie sztangi"
-                            required
+                            type="text" 
+                            placeholder="np. Trening klatki / Poranny bieg" 
+                            value={formData.name} 
+                            onChange={e => setFormData({...formData, name: e.target.value})} 
+                            required 
                         />
                     </div>
                     
-                    <div className={`${styles.formGroup} ${styles.small}`}>
-                        <label>Powtórzenia:</label>
-                        <input
-                            type="number"
-                            name="repetitions"
-                            value={item.repetitions}
-                            onChange={(e) => handleSetChange(index, e)}
-                            min="1"
-                            placeholder="Powt."
-                        />
-                    </div>
-                    <div className={`${styles.formGroup} ${styles.small}`}>
-                        <label>Ciężar:</label>
-                        <input
-                            type="number"
-                            name="weight"
-                            value={item.weight}
-                            onChange={(e) => handleSetChange(index, e)}
-                            step="0.01"
-                            placeholder="Ciężar"
-                        />
-                    </div>
-                    <div className={`${styles.formGroup} ${styles.unit}`}>
-                         <label>Jednostka:</label>
-                         <select name="unit" value={item.unit} onChange={(e) => handleSetChange(index, e)}>
-                            <option value="kg">kg</option>
-                            <option value="lbs">lbs</option>
-                            <option value="none">brak</option>
-                         </select>
+                    <div className={styles.formRow}>
+                        <div className={styles.formGroup}>
+                            <label>Data</label>
+                            <input 
+                                type="date" 
+                                value={formData.workout_date} 
+                                onChange={e => setFormData({...formData, workout_date: e.target.value})} 
+                                required 
+                            />
+                        </div>
+                        <div className={styles.formGroup}>
+                            <label>Czas (min)</label>
+                            <input 
+                                type="number" 
+                                placeholder="0" 
+                                value={formData.duration_minutes} 
+                                onChange={e => setFormData({...formData, duration_minutes: e.target.value})} 
+                            />
+                        </div>
                     </div>
 
-                    <button type="button" onClick={() => removeSet(index)} className={styles.buttonRemove}>Usuń Serię</button>
-                </div>
-            ))}
+                    <hr className={styles.divider} />
 
-            <button type="button" onClick={addSet} className={styles.buttonSecondary}>
-                + Dodaj Serię
-            </button>
+                    <div className={styles.dynamicSection}>
+                        <h4 className={styles.sectionSubtitle}>
+                            Dane: {selectedKey === 'strength' ? 'Siła' : 'Bieganie'}
+                        </h4>
+                        
+                        {selectedKey === 'strength' ? (
+                            <div className={styles.detailsGrid}>
+                                <div className={styles.formGroup}>
+                                    <label>Nazwa ćwiczenia</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="np. Martwy ciąg" 
+                                        value={strengthDetails.exercise_name}
+                                        onChange={e => setStrengthDetails({...strengthDetails, exercise_name: e.target.value})} 
+                                        required 
+                                    />
+                                </div>
+                                <div className={styles.formRow}>
+                                    <div className={styles.formGroup}>
+                                        <label>Ciężar (kg)</label>
+                                        <input 
+                                            type="number" step="0.5" placeholder="0"
+                                            value={strengthDetails.weight}
+                                            onChange={e => setStrengthDetails({...strengthDetails, weight: e.target.value})} 
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label>Powtórzenia</label>
+                                        <input 
+                                            type="number" placeholder="0"
+                                            value={strengthDetails.repetitions}
+                                            onChange={e => setStrengthDetails({...strengthDetails, repetitions: e.target.value})} 
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className={styles.detailsGrid}>
+                                <div className={styles.formGroup}>
+                                    <label>Dystans (km)</label>
+                                    <input 
+                                        type="number" step="0.01" placeholder="0.00"
+                                        value={runDetails.distance_km}
+                                        onChange={e => setRunDetails({...runDetails, distance_km: e.target.value})} 
+                                        required 
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label>Czas biegu (HH:MM:SS)</label>
+                                    <div className={styles.timeInputRow}>
+                                        <input type="number" placeholder="HH" min="0" 
+                                            value={runDetails.hours} onChange={e => setRunDetails({...runDetails, hours: e.target.value})} />
+                                        <span>:</span>
+                                        <input type="number" placeholder="MM" min="0" max="59" 
+                                            value={runDetails.minutes} onChange={e => setRunDetails({...runDetails, minutes: e.target.value})} />
+                                        <span>:</span>
+                                        <input type="number" placeholder="SS" min="0" max="59" 
+                                            value={runDetails.seconds} onChange={e => setRunDetails({...runDetails, seconds: e.target.value})} />
+                                    </div>
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label>Tętno (BPM)</label>
+                                    <input 
+                                        type="number" placeholder="0"
+                                        value={runDetails.average_heart_rate}
+                                        onChange={e => setRunDetails({...runDetails, average_heart_rate: e.target.value})} 
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <button 
+                        type="submit" 
+                        className={styles.buttonPrimary} 
+                        disabled={isLoading}
+                    >
+                        {isLoading ? 'Zapisywanie...' : 'Wyślij do FitLOG'}
+                    </button>
+                </form>
+            </div>
         </div>
     );
 };
-
 
 export default NewTrainingPage;

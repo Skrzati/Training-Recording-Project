@@ -1,125 +1,98 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { fetchWithAuth } from '../../api/api';
 import styles from './MyTrainingsPage.module.css';
-import WorkoutDetails from '../../components/WorkoutDetails/WorkoutDetails'; // NOWY KOMPONENT
 
 const MyTrainingsPage = () => {
     const [workouts, setWorkouts] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
-    
-    // Stan do zarządzania widokiem detali
-    const [selectedWorkoutId, setSelectedWorkoutId] = useState(null);
-    const [selectedWorkoutName, setSelectedWorkoutName] = useState('');
-
-    // Formatowanie daty dla czytelności
-    const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
-        try {
-            return new Date(dateString).toLocaleDateString('pl-PL', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-            });
-        } catch {
-            return dateString; 
-        }
-    };
-
-    // Funkcja do ładowania listy treningów
-    const fetchWorkouts = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            // GET /workouts (wymaga autoryzacji)
-            const data = await fetchWithAuth('/workouts'); 
-            setWorkouts(data);
-        } catch (err) {
-            console.error('Błąd ładowania treningów:', err);
-            setError(`Nie udało się załadować listy: ${err.message || 'Błąd serwera'}.`);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchWorkouts();
-    }, []); 
+        const loadHistory = async () => {
+            try {
+                const data = await fetchWithAuth('/workouts/history');
+                // Sortujemy dodatkowo po ID malejąco, aby najnowsze były zawsze na górze
+                const sortedData = data.sort((a, b) => b.id - a.id);
+                setWorkouts(sortedData);
+            } catch (err) {
+                console.error("Błąd pobierania historii:", err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadHistory();
+    }, []);
 
-    // Przełączanie na widok detali
-    const handleViewDetails = (id, name) => {
-        setSelectedWorkoutId(id);
-        setSelectedWorkoutName(name);
+    const formatDuration = (duration) => {
+        if (!duration) return null;
+        // Formatuje interwał ISO (PT1H30M) na czytelny tekst
+        if (typeof duration === 'string' && duration.startsWith('PT')) {
+            return duration.replace('PT', '').replace('H', 'h ').replace('M', 'm ').replace('S', 's');
+        }
+        return duration;
     };
 
-    // Powrót do widoku listy
-    const handleBackToList = () => {
-        setSelectedWorkoutId(null);
-        setSelectedWorkoutName('');
-        // Można odświeżyć listę po powrocie, jeśli zajdzie potrzeba
-        // fetchWorkouts(); 
-    };
+    if (loading) return <div className={styles.loading}>Ładowanie Twoich osiągnięć... 🏋️‍♂️</div>;
 
-    // --- RENDEROWANIE WIDOKÓW ---
-
-    if (isLoading) {
-        return (
-            <div className={`page-content ${styles.trainingsContainer}`}>
-                <h1 className={styles.header}>Moje Treningi</h1>
-                <p>Ładowanie listy... 🏋️</p>
-            </div>
-        );
-    }
-
-    if (error) {
-         return (
-            <div className={`page-content ${styles.trainingsContainer}`}>
-                <h1 className={styles.header}>Błąd</h1>
-                <p className={styles.error}>{error}</p>
-            </div>
-        );
-    }
-    
-    // 1. Widok szczegółów (po wybraniu ID)
-    if (selectedWorkoutId) {
-        return (
-            <WorkoutDetails 
-                workoutId={selectedWorkoutId} 
-                workoutName={selectedWorkoutName}
-                onBack={handleBackToList} 
-            />
-        );
-    }
-    
-    // 2. Widok listy treningów
     return (
-        <div className={`page-content ${styles.trainingsContainer}`}>
-            <h1 className={styles.header}>Moje Treningi ({workouts.length})</h1>
+        <div className={styles.container}>
+            <header className={styles.header}>
+                <h1>Moja Historia</h1>
+                <p>Wyświetlam {workouts.length} zapisanych aktywności</p>
+            </header>
 
-            {workouts.length === 0 ? (
-                <p>Jeszcze nie dodałeś żadnych treningów! Zacznij od strony "Nowy Trening".</p>
-            ) : (
-                <ul className={styles.workoutsList}>
-                    {workouts.map(workout => (
-                        <li key={workout.id} className={styles.workoutItem}>
-                            <div className={styles.workoutInfo}>
-                                <h3 className={styles.workoutName}>{workout.name}</h3>
-                                <p className={styles.workoutDate}>{formatDate(workout.workout_date)}</p>
+            <div className={styles.grid}>
+                {workouts.length === 0 ? (
+                    <div className={styles.empty}>Brak zapisanych treningów. Czas na pierwszy krok!</div>
+                ) : (
+                    workouts.map(workout => (
+                        <div key={workout.id} className={styles.card}>
+                            <div className={styles.cardTop}>
+                                <span className={workout.category?.categoryKey === 'run' ? styles.badgeRun : styles.badgeStrength}>
+                                    {workout.category?.categoryKey === 'run' ? '🏃 BIEGANIE' : '💪 SIŁOWNIA'}
+                                </span>
+                                <span className={styles.date}>{workout.workoutDate}</span>
                             </div>
-                            <div className={styles.workoutMeta}>
-                                <span className={styles.metaItem}>Kategoria: <strong>{workout.category_name}</strong></span>
-                                <span className={styles.metaItem}>Czas: {workout.duration_minutes || 'N/A'} min</span>
+                            
+                            <h3 className={styles.name}>{workout.name || "Bez nazwy"}</h3>
+                            
+                            <div className={styles.statsBox}>
+                                {workout.category?.categoryKey === 'run' ? (
+                                    <>
+                                        <div className={styles.statItem}>
+                                            <span className={styles.statLabel}>Dystans</span>
+                                            <span className={styles.statValue}>
+                                                {workout.runDetails?.distanceKm || '0'} km
+                                            </span>
+                                        </div>
+                                        <div className={styles.statItem}>
+                                            <span className={styles.statLabel}>Czas trwania</span>
+                                            <span className={styles.statValue}>
+                                                {formatDuration(workout.runDetails?.duration) || 
+                                                 (workout.durationMinutes > 0 ? `${workout.durationMinutes} min` : '---')}
+                                            </span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className={styles.statItem}>
+                                            <span className={styles.statLabel}>Serie</span>
+                                            <span className={styles.statValue}>
+                                                {workout.strengthDetails?.length || 0}
+                                            </span>
+                                        </div>
+                                        <div className={styles.statItem}>
+                                            <span className={styles.statLabel}>Najcięższy</span>
+                                            <span className={styles.statValue}>
+                                                {workout.strengthDetails?.[0]?.weight || 0} kg
+                                            </span>
+                                        </div>
+                                    </>
+                                )}
                             </div>
-                            <button 
-                                className={styles.detailsButton} 
-                                onClick={() => handleViewDetails(workout.id, workout.name)}
-                            >
-                                Zobacz Detale
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-            )}
+                        </div>
+                    ))
+                )}
+            </div>
         </div>
     );
 };

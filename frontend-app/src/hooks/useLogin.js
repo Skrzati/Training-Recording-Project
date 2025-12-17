@@ -1,4 +1,5 @@
 // src/hooks/useLogin.js
+import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 import { loginUser } from '../services/authService';
 
@@ -7,6 +8,7 @@ import { loginUser } from '../services/authService';
  * @param {function} onLoginSuccess - Callback wywoływany z tokenem po sukcesie.
  */
 export const useLogin = (onLoginSuccess) => {
+    const { handleLoginSuccess } = useAuth(); // Pobieramy funkcję z contextu
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [isError, setIsError] = useState(false);
@@ -18,6 +20,7 @@ export const useLogin = (onLoginSuccess) => {
 
         try {
             const token = await loginUser(identifier, password);
+            handleLoginSuccess(token);
             onLoginSuccess(token); 
             setMessage('Zalogowano pomyślnie!');
             
