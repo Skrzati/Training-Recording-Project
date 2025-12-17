@@ -1,0 +1,207 @@
+/* Kontener główny centrujący kartę na stronie */
+.pageContainer {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 3rem 1rem;
+    min-height: 90vh;
+    background-color: transparent; /* Przyjmuje tło rodzica */
+}
+
+/* Karta formularza */
+.card {
+    background: #ffffff;
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 500px;
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.title {
+    text-align: center;
+    color: #2d3436;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+    font-weight: 800;
+}
+
+/* Grupowanie etykiety i inputa */
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.2rem;
+    width: 100%;
+}
+
+.formGroup label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #636e72;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Stylizacja pól tekstowych, liczbowych i selectów */
+.formGroup input, 
+.formGroup select {
+    padding: 12px 15px;
+    border: 2px solid #f1f2f6;
+    border-radius: 10px;
+    font-size: 1rem;
+    color: #2d3436;
+    transition: all 0.3s ease;
+    background: #ffffff;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.formGroup input:focus, 
+.formGroup select:focus {
+    outline: none;
+    border-color: #0984e3;
+    background: #fdfdfd;
+    box-shadow: 0 0 0 4px rgba(9, 132, 227, 0.1);
+}
+
+/* Wiersz z dwoma polami obok siebie (np. Data i Czas) */
+.formRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    width: 100%;
+}
+
+.divider {
+    border: 0;
+    height: 1px;
+    background: #eee;
+    margin: 2rem 0;
+}
+
+/* Sekcja detali (Siła/Bieg) z innym tłem */
+.dynamicSection {
+    background: #f9f9fb;
+    padding: 1.5rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    border: 1px solid #edf2f7;
+}
+
+.sectionSubtitle {
+    margin-top: 0;
+    margin-bottom: 1.2rem;
+    font-size: 0.95rem;
+    color: #2d3436;
+    border-left: 4px solid #0984e3;
+    padding-left: 10px;
+    font-weight: 700;
+}
+
+.detailsGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Specjalny układ dla czasu HH:MM:SS */
+.timeInputRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: #ffffff;
+    padding: 5px;
+    border-radius: 10px;
+    border: 2px solid #f1f2f6;
+}
+
+.timeInputRow input {
+    border: none !important;
+    background: transparent !important;
+    padding: 8px 5px !important;
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    font-size: 1.1rem;
+    width: 30% !important;
+    box-shadow: none !important;
+}
+
+.timeInputRow span {
+    font-weight: bold;
+    color: #b2bec3;
+    font-size: 1.2rem;
+}
+
+/* Przycisk wysyłania */
+.buttonPrimary {
+    width: 100%;
+    padding: 16px;
+    background: #0984e3;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px rgba(9, 132, 227, 0.2);
+}
+
+.buttonPrimary:hover {
+    background: #0747a6;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(9, 132, 227, 0.3);
+}
+
+.buttonPrimary:active {
+    transform: translateY(0);
+}
+
+.buttonPrimary:disabled {
+    background: #b2bec3;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Alerty statusu */
+.successAlert, .errorAlert {
+    padding: 14px;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.successAlert {
+    background: #e3fcef;
+    color: #00875a;
+    border: 1px solid #abf5d1;
+}
+
+.errorAlert {
+    background: #ffebe6;
+    color: #de350b;
+    border: 1px solid #ffbdad;
+}
+
+/* Responsywność dla małych ekranów */
+@media (max-width: 480px) {
+    .card {
+        padding: 1.5rem;
+    }
+    
+    .formRow {
+        grid-template-columns: 1fr; /* Na komórkach pola jedno pod drugim */
+    }
+}

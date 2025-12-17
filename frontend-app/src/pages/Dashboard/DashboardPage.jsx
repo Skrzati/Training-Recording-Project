@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './Dashboard.module.css';
-import { fetchWithAuth } from '../../api/api'; 
+import { fetchWithAuth } from '../../api/api'; // <--- Poprawiony import
 
 const DashboardPage = () => {
     const [stats, setStats] = useState(null);
@@ -13,14 +13,17 @@ const DashboardPage = () => {
              setError(null);
 
              try {
-                // Wywołanie API z automatyczną autoryzacją
+                // Wywołanie API z automatyczną autoryzacją (domyślnie isPublic=false)
                 const data = await fetchWithAuth('/dashboard'); 
                 
                 setStats(data);
                 
              } catch (err) {
                 console.error('Błąd ładowania Dashboardu:', err.message);
-                setError(err.message);
+                const errorMessage = err.message.includes("Autoryzacja nieudana") 
+                                   ? "Autoryzacja nieudana. Proszę się zalogować." 
+                                   : err.message;
+                setError(errorMessage);
              } finally {
                 setIsLoading(false);
              }
@@ -46,7 +49,6 @@ const DashboardPage = () => {
         );
     }
     
-    // Jeśli stats są null (ale nie ma błędu), użyjemy placeholderów
     const displayStats = stats || { totalWorkouts: 'N/A', lastWorkout: 'N/A', currentStreak: 'N/A' };
     
     return (

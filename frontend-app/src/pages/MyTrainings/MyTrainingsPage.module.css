@@ -1,0 +1,116 @@
+.container {
+    padding: 3rem 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    color: #ffffff;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.header p {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.1rem;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 1.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.cardTop {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.2rem;
+}
+
+.badgeRun, .badgeStrength {
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 6px 12px;
+    border-radius: 50px;
+    text-transform: uppercase;
+}
+
+.badgeRun { background: #e3fcef; color: #00875a; }
+.badgeStrength { background: #fff9db; color: #f08c00; }
+
+.date {
+    font-size: 0.85rem;
+    color: #868e96;
+    font-weight: 600;
+}
+
+.name {
+    font-size: 1.5rem;
+    color: #212529;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.statsBox {
+    background: #f8f9fa;
+    border-radius: 15px;
+    padding: 1.2rem;
+    display: flex;
+    justify-content: space-around;
+    gap: 15px;
+    margin-top: auto;
+}
+
+.statItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+
+.statLabel {
+    font-size: 0.65rem;
+    color: #adb5bd;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.statValue {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #495057;
+    white-space: nowrap;
+}
+
+.loading, .empty {
+    text-align: center;
+    padding: 5rem;
+    font-size: 1.2rem;
+    color: white;
+}
