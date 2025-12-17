@@ -1,0 +1,175 @@
+/* Plik: frontend-app/src/pages/NewTraining/NewTrainingPage.module.css */
+
+.pageContainer {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.form h2 {
+    color: var(--color-primary, #007bff);
+    margin-bottom: 25px;
+    border-bottom: 2px solid var(--color-primary-light, #e0f0ff);
+    padding-bottom: 10px;
+}
+
+.formGroup {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.formGroup label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: var(--color-text-dark, #333);
+}
+
+.formGroup input[type="text"],
+.formGroup input[type="date"],
+.formGroup input[type="number"],
+.formGroup select,
+.formGroup textarea {
+    padding: 10px;
+    border: 1px solid var(--color-border, #ccc);
+    border-radius: var(--border-radius, 4px);
+    font-size: 1em;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.detailsSection {
+    margin-top: 30px;
+    padding: 20px;
+    border: 1px solid var(--color-primary-light, #e0f0ff);
+    border-radius: var(--border-radius, 4px);
+    background-color: var(--color-background-light, #f8f8f8);
+}
+
+.detailsSection h3 {
+    margin-top: 0;
+    color: var(--color-secondary, #ff8c00);
+}
+
+.note {
+    font-size: 0.9em;
+    color: var(--color-text-light, #666);
+    margin-bottom: 15px;
+    border-left: 3px solid var(--color-secondary, #ff8c00);
+    padding-left: 10px;
+}
+
+/* Styl dla pojedynczej dynamicznej serii */
+.setRow {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: var(--border-radius, 4px);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
+    position: relative;
+}
+
+.setRow h4 {
+    width: 100%;
+    margin: 0 0 10px 0;
+    color: var(--color-secondary-dark, #cc7000);
+    font-size: 1.1em;
+}
+
+.setRow .formGroup {
+    flex: 1 1 150px; 
+    margin-bottom: 0;
+}
+
+/* Węższe pola dla powtórzeń i ciężaru */
+.setRow .small {
+    flex: 0 0 100px;
+}
+
+/* Pole dla jednostki (select) */
+.setRow .unit {
+    flex: 0 0 70px;
+}
+
+/* Pełna szerokość dla nazwy ćwiczenia w wierszu serii */
+.setRow .fullWidth {
+    flex: 1 1 100%;
+}
+
+
+/* --- Przyciski --- */
+.buttonPrimary, 
+.buttonSecondary,
+.buttonRemove {
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--border-radius, 4px);
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.buttonPrimary {
+    background-color: var(--color-primary, #007bff);
+    color: white;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.buttonPrimary:hover {
+    background-color: var(--color-primary-dark, #0056b3);
+}
+
+.buttonSecondary {
+    background-color: var(--color-secondary, #ff8c00);
+    color: white;
+    margin-top: 15px;
+}
+
+.buttonSecondary:hover {
+    background-color: var(--color-secondary-dark, #cc7000);
+}
+
+.buttonRemove {
+    background-color: #ff6b6b;
+    color: white;
+    padding: 8px 12px;
+}
+
+.buttonRemove:hover {
+    background-color: #e63946;
+}
+
+/* Komunikaty */
+.error {
+    color: white;
+    background-color: #e63946;
+    padding: 10px;
+    border-radius: var(--border-radius, 4px);
+    margin-bottom: 15px;
+}
+
+.success {
+    color: white;
+    background-color: #4CAF50;
+    padding: 10px;
+    border-radius: var(--border-radius, 4px);
+    margin-bottom: 15px;
+}
+
+/* Dostosowanie dla małych ekranów */
+@media (max-width: 500px) {
+    .setRow {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .setRow .formGroup,
+    .setRow .small,
+    .setRow .unit {
+        flex: 1 1 100%;
+    }
+}

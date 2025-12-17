@@ -5,9 +5,9 @@
 // --------------------------------------------------------
 
 // Zmienne środowiskowe powinny być zdefiniowane w pliku .env
-const BASE_URL = 'http://localhost:8080/api.v1/auth'; 
+const BASE_URL = 'http://localhost:8080/api/v1/auth'; 
 
-const LOGIN_URL = `${BASE_URL}/authenticate`; // Poprawiona ortografia
+const LOGIN_URL = `${BASE_URL}/authenticate`; 
 const REGISTER_URL = `${BASE_URL}/register`;
 
 
